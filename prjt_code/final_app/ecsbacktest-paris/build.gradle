@@ -1,0 +1,53 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.3.1'
+    id 'io.spring.dependency-management' version '1.1.5'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.apache.tomcat.embed:tomcat-embed-jasper'
+    implementation 'jakarta.servlet:jakarta.servlet-api'
+    implementation 'jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api'
+    implementation 'org.glassfish.web:jakarta.servlet.jsp.jstl'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    implementation 'com.mysql:mysql-connector-j:8.3.0' //버전을 명시해주어야 함
+    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3'
+
+    compileOnly 'org.projectlombok:lombok'
+    //(롬복)
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    //(수정이 일어난 부분만 자동으로 컴파일 해줌)
+    annotationProcessor 'org.projectlombok:lombok'
+    //(롬복이라는 어노에티션으로 반복되는 코드를 최소화해줌)
+
+
+//    testImplementation 'org.springframework.boot:spring-boot-starter-test:2.6.7'
+
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

@@ -1,0 +1,18 @@
+version: 0.0
+Resources:
+  - TargetService:
+      Type: AWS::ECS::Service
+      Properties:
+        TaskDefinition: "arn:aws:ecs:eu-west-3:971422701599:task-definition/ecs-prjt-back-taskdef-970728:latest" # 본인 Task 명
+        LoadBalancerInfo:
+          ContainerName: "backend" # 본인 컨테이너 명
+          ContainerPort: 8080
+# hooks:
+#   BeforeInstall:
+#     - location: scripts/stop_old_task.sh
+#       timeout: 300
+#       runas: root
+#   AfterInstall:
+#     - location: scripts/start_new_task.sh
+#       timeout: 300
+#       runas: root

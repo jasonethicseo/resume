@@ -1,0 +1,125 @@
+# 링크를 해제합니다: $0은 링크일 수 있습니다.
+app_path=$0
+
+# 데이지 체인된 심볼릭 링크에 필요합니다.
+while
+    APP_HOME=${app_path%"${app_path##*/}"}  # 후행 슬래시를 남깁니다. 경로가 없으면 빈 값입니다.
+    [ -h "$app_path" ]
+do
+    ls=$( ls -ld "$app_path" )
+    link=${ls#*' -> '}
+    case $link in             #(
+      /*)   app_path=$link ;; #(
+      *)    app_path=$APP_HOME$link ;;
+    esac
+done
+
+# 표준 출력을 버립니다. $CDPATH가 설정된 경우 문제를 피하기 위해 (https://github.com/gradle/gradle/issues/25036)
+APP_HOME=$( cd "${APP_HOME:-./}" > /dev/null && pwd -P ) || exit
+
+warn () {
+    echo "$*"
+} >&2
+
+die () {
+    echo
+    echo "$*"
+    echo
+    exit 1
+} >&2
+
+# 운영체제(OS)별 지원 (반드시 'true' 또는 'false'여야 합니다).
+cygwin=false
+msys=false
+darwin=false
+nonstop=false
+case "$( uname )" in                #(
+  CYGWIN* )         cygwin=true  ;; #(
+  Darwin* )         darwin=true  ;; #(
+  MSYS* | MINGW* )  msys=true    ;; #(
+  NONSTOP* )        nonstop=true ;;
+esac
+
+CLASSPATH=$APP_HOME/gradle/wrapper/gradle-wrapper.jar
+
+# JVM을 시작할 때 사용할 Java 명령을 결정합니다.
+if [ -n "$JAVA_HOME" ] ; then
+    if [ -x "$JAVA_HOME/jre/sh/java" ] ; then
+        # IBM의 AIX에서 JDK 실행 파일이 이상한 위치에 저장되어 있음
+        JAVACMD=$JAVA_HOME/jre/sh/java
+    else
+        JAVACMD=$JAVA_HOME/bin/java
+    fi
+    if [ ! -x "$JAVACMD" ] ; then
+        die "ERROR: JAVA_HOME이 잘못된 디렉토리로 설정되었습니다: $JAVA_HOME
+
+환경 변수 JAVA_HOME을 Java 설치 위치에 맞게 설정해 주세요."
+    fi
+else
+    JAVACMD=java
+    if ! command -v java >/dev/null 2>&1
+    then
+        die "ERROR: JAVA_HOME이 설정되지 않았으며 PATH에서 'java' 명령을 찾을 수 없습니다.
+
+환경 변수 JAVA_HOME을 Java 설치 위치에 맞게 설정해 주세요."
+    fi
+fi
+
+# 가능하면 최대 파일 디스크립터 수를 증가시킵니다.
+if ! "$cygwin" && ! "$darwin" && ! "$nonstop" ; then
+    case $MAX_FD in #(
+      max*)
+        # POSIX sh에서는 ulimit -H가 정의되지 않음. 결과를 확인하여 작동 여부를 판단.
+        MAX_FD=$( ulimit -H -n ) ||
+            warn "최대 파일 디스크립터 한도를 조회할 수 없습니다"
+    esac
+    case $MAX_FD in  #(
+      '' | soft) :;; #(
+      *)
+        # POSIX sh에서는 ulimit -n이 정의되지 않음. 결과를 확인하여 작동 여부를 판단.
+        ulimit -n "$MAX_FD" ||
+            warn "최대 파일 디스크립터 한도를 $MAX_FD로 설정할 수 없습니다"
+    esac
+fi
+
+# Cygwin 또는 MSYS에서는 경로를 Windows 형식으로 변환한 후 Java를 실행합니다.
+if "$cygwin" || "$msys" ; then
+    APP_HOME=$( cygpath --path --mixed "$APP_HOME" )
+    CLASSPATH=$( cygpath --path --mixed "$CLASSPATH" )
+
+    JAVACMD=$( cygpath --unix "$JAVACMD" )
+
+    # 이제 인수를 변환합니다 - /bin/sh만 사용하도록 제한된 임시 방편
+    for arg do
+        if
+            case $arg in                                #(
+              -*)   false ;;                            # 옵션은 변환하지 않음 #(
+              /?*)  t=${arg#/} t=/${t%%/*}              # POSIX 파일 경로처럼 보임
+                    [ -e "$t" ] ;;                      #(
+              *)    false ;;
+            esac
+        then
+            arg=$( cygpath --path --ignore --mixed "$arg" )
+        fi
+        shift                   # 이전 인수를 제거
+        set -- "$@" "$arg"      # 대체 인수를 추가
+    done
+fi
+
+# 기본 JVM 옵션을 추가합니다. 또한 이 스크립트에 JAVA_OPTS와 GRADLE_OPTS를 사용하여 JVM 옵션을 전달할 수 있습니다.
+DEFAULT_JVM_OPTS='"-Xmx64m" "-Xms64m"'
+
+# Java 명령을 위한 모든 인수를 수집합니다:
+#   * DEFAULT_JVM_OPTS, JAVA_OPTS, GRADLE_OPTS, 그리고 optsEnvironmentVar는 쉘 명령어 조각을 포함할 수 없으며,
+#     포함된 쉘 문법은 이스케이프 처리됩니다.
+#   * 예를 들어: 사용자는 ${Hostname}가 확장되기를 기대할 수 없습니다. 이는 환경 변수로 간주되어
+#     명령 줄에서 '${Hostname}' 자체로 처리됩니다.
+
+set -- \
+        "-Dorg.gradle.appname=$APP_BASE_NAME" \
+        -classpath "$CLASSPATH" \
+        org.gradle.wrapper.GradleWrapperMain \
+        "$@"
+
+# "xargs"가 사용할 수 없는 경우 종료합니다.
+if ! command -v xargs >/dev/null

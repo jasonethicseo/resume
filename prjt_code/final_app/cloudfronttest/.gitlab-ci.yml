@@ -1,0 +1,35 @@
+image: node:16
+
+stages:
+  - build
+  - deploy
+
+variables:
+  S3_BUCKET_NAME: www.todo.jasonseo.site
+
+cache:
+  paths:
+    - node_modules/
+
+before_script:
+  - npm install
+
+build:
+  stage: build
+  script:
+    - npm run build
+  artifacts:
+    paths:
+      - dist/
+
+deploy:
+  stage: deploy
+  image: amazonlinux
+  dependencies:
+    - build
+  before_script:
+    - yum install -y aws-cli
+  script:
+    - aws s3 sync dist/ s3://$S3_BUCKET_NAME --delete
+  only:
+    - main
